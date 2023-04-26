@@ -5,12 +5,11 @@ import Administrator from "./pages/Administrator";
 import Donor from "./pages/Donor";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import "dayjs/locale/de";
 import Doctor from "./pages/Doctor";
 
 function App() {
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} localeText={"de"}>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<LandingPage />} />

@@ -1,0 +1,24 @@
+.mainDiv {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-flow: column nowrap;
+}
+
+.pageDiv {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.todayDiv {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.allDiv {
+  display: flex;
+  height: 100%;
+  width: 100%;
+}

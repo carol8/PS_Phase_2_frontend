@@ -19,6 +19,8 @@ function RegisterDonor() {
   const nameRef = useRef();
   const surnameRef = useRef();
 
+  const createUrl = "http://localhost:8080/donors";
+
   function signUpHandler() {
     const donorData = {
       username: usernameRef.current.value,
@@ -26,8 +28,6 @@ function RegisterDonor() {
       name: nameRef.current.value,
       surname: surnameRef.current.value,
     };
-
-    const createUrl = "http://localhost:8080/donors";
 
     setUsernameError(" ");
     setPasswordError(" ");

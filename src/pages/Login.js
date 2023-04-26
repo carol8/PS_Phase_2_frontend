@@ -20,6 +20,8 @@ function LandingPage() {
   const usernameRef = useRef();
   const passwordRef = useRef();
 
+  const userURL = "http://localhost:8080/users";
+
   function isFormValid(form) {
     var formValid = true;
     setUsernameError(" ");
@@ -45,7 +47,7 @@ function LandingPage() {
 
     if (isFormValid(userData)) {
       setLoginError(" ");
-      fetch("http://localhost:8080/users", {
+      fetch(userURL, {
         method: "POST",
         body: JSON.stringify(userData),
         headers: {
@@ -122,9 +124,11 @@ function LandingPage() {
           error={passwordError !== " "}
         />
         {isRegistrationSuccesful && (
-          <h2 className={classes.registrationSuccesful}>
-            Donor registration succesful!
-          </h2>
+          <div className={classes.errorDiv}>
+            <Typography variant="p" style={{ color: "#00AA00" }}>
+              Donor registration succesful!
+            </Typography>
+          </div>
         )}
         <div className={classes.errorDiv}>
           <Typography variant="p" style={{ color: "#FF0000" }}>

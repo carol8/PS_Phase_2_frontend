@@ -25,9 +25,11 @@ function Donor() {
   const { username } = state === null ? "" : state;
 
   const [data, setData] = useState({
+    name: "Loading...",
     appointmentList: [],
     locationList: [],
   });
+
   const [fullDates, setFullDates] = useState([]);
   const [repeatPasswordError, setRepeatPasswordError] = useState(" ");
   const [isLocationUuidSelected, setIsLocationUuidSelected] = useState(false);
@@ -43,10 +45,6 @@ function Donor() {
   const surnameRef = useRef(null);
   const locationUuidRef = useRef(null);
   const appointmentUuidRef = useRef(null);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const donorURL = "http://localhost:8080/donors";
   const locationURL = "http://localhost:8080/locations";
@@ -84,6 +82,7 @@ function Donor() {
     },
   ];
   const columnsLocations = [
+    { field: "id", headerName: "ID", flex: 1 },
     { field: "name", headerName: "Name", flex: 1 },
     { field: "address", headerName: "Address", flex: 1 },
     { field: "openingTime", headerName: "Opening Time", flex: 1 },
@@ -105,7 +104,7 @@ function Donor() {
         );
         data.locationList = data.locationList.map((location, index) => ({
           ...location,
-          id: index,
+          id: index + 1,
         }));
 
         console.log(data);
@@ -116,6 +115,10 @@ function Donor() {
         surnameRef.current.value = data.surname;
       });
   }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   function isRepeatedPasswordValid(password, repeatedPassword) {
     setRepeatPasswordError(" ");
@@ -330,6 +333,7 @@ function Donor() {
           rows={data.appointmentList}
           columns={columnsAppointments}
           onRowClick={appointmentRowHandler}
+          pageSizeOptions={[5]}
         />
         <CustomTable
           title="Locations"
@@ -337,6 +341,7 @@ function Donor() {
           rows={data.locationList}
           columns={columnsLocations}
           onRowClick={locationRowHandler}
+          pageSizeOptions={[5]}
         />
       </div>
       <Divider orientation="vertical" />
@@ -410,7 +415,7 @@ function Donor() {
         </div>
         <div className={classes.appointmentDiv}>
           <TextField
-            label="Select appointment from table"
+            label="Appointment ID (Select from table)"
             id="appointmentUuid"
             type="text"
             margin="dense"
@@ -419,7 +424,7 @@ function Donor() {
             InputLabelProps={{ shrink: true }}
           />
           <TextField
-            label="Select location from table"
+            label="Location ID (Select from table)"
             id="locationUuid"
             type="text"
             margin="dense"

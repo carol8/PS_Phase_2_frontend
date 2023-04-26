@@ -13,15 +13,10 @@
 
 .errorDiv {
   display: flex;
-  padding-bottom: 1rem;
   justify-content: center;
 }
 
 .buttonsDiv {
   display: flex;
   justify-content: space-around;
-}
-
-.registrationSuccesful {
-  color: green;
 }

@@ -51,7 +51,6 @@ function Administrator() {
 
   const columnsDoctors = [
     { field: "username", headerName: "Username", flex: 1 },
-    { field: "password", headerName: "Password", flex: 1 },
     { field: "name", headerName: "Name", flex: 1 },
     { field: "surname", headerName: "Surname", flex: 1 },
     { field: "email", headerName: "Email", flex: 1 },
@@ -299,6 +298,7 @@ function Administrator() {
           rows={data.doctorList}
           columns={columnsDoctors}
           onRowClick={doctorRowHandler}
+          pageSizeOptions={[5]}
         />
         <CustomTable
           title="Locations"
@@ -306,6 +306,7 @@ function Administrator() {
           rows={data.locationList}
           columns={columnsLocations}
           onRowClick={locationRowHandler}
+          pageSizeOptions={[5]}
         />
       </div>
       <Divider orientation="vertical" />

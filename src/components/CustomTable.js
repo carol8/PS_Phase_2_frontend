@@ -29,11 +29,18 @@ export default function CustomTable(props) {
   return (
     <div style={styles.div}>
       <DataGrid
-        autoHeight={false}
+        autoHeight={props.autoHeight}
+        autoPageSize={props.autoPageSize}
         rows={props.rows}
         columns={props.columns}
         slots={{ toolbar: DataGridTitle }}
+        initialState={props.initialState}
+        rowCount={props.rowCount}
+        pageSizeOptions={props.pageSizeOptions}
+        paginationMode={props.paginationMode}
+        paginationModel={props.paginationModel}
         onRowClick={props.onRowClick}
+        onPaginationModelChange={props.onPaginationModelChange}
       ></DataGrid>
     </div>
   );
