@@ -1,0 +1,31 @@
+.mainDiv {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tableDiv {
+  display: flex;
+  flex: 4;
+  flex-flow: column nowrap;
+  padding: 1rem;
+}
+
+.sidebarDiv {
+  display: flex;
+  flex: 1;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.fieldsDiv {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+.buttonsDiv {
+  display: flex;
+  justify-content: space-around;
+}
