@@ -12,54 +12,84 @@ function RegisterDonor() {
   const [repeatPasswordError, setRepeatPasswordError] = useState(" ");
   const [nameError, setNameError] = useState(" ");
   const [surnameError, setSurnameError] = useState(" ");
+  const [emailError, setEmailError] = useState(" ");
+  const [phoneError, setPhoneError] = useState(" ");
 
   const usernameRef = useRef();
   const passwordRef = useRef();
   const repeatPasswordRef = useRef();
   const nameRef = useRef();
   const surnameRef = useRef();
+  const emailRef = useRef();
+  const phoneRef = useRef();
 
   const createUrl = "http://localhost:8080/donors";
+  const usernameEmptyErrorString = "Username cannot be empty";
+  const usernameExistsErrorString = "Username already exists";
+  const passwordErrorString = "Password cannot be empty";
+  const repeatPasswordErrorString = "Repeated password doesn't match";
+  const nameErrorString = "Name cannot be empty";
+  const surnameErrorString = "Surname cannot be empty";
+  const emailErrorString = "Email cannot be empty";
+  const phoneErrorString = "Phone number cannot be empty";
 
-  function signUpHandler() {
-    const donorData = {
-      username: usernameRef.current.value,
-      password: passwordRef.current.value,
-      name: nameRef.current.value,
-      surname: surnameRef.current.value,
-    };
-
+  function isFormValid(formData) {
     setUsernameError(" ");
     setPasswordError(" ");
     setRepeatPasswordError(" ");
     setNameError(" ");
     setSurnameError(" ");
+    setEmailError(" ");
+    setPhoneError(" ");
 
     var dataValid = true;
-    if (donorData.username === "") {
-      setUsernameError("Username cannot be empty");
+
+    if (formData.username === "") {
+      setUsernameError(usernameEmptyErrorString);
       dataValid = false;
     }
-    if (donorData.password === "") {
-      setPasswordError("Password cannot be empty");
+    if (formData.password === "") {
+      setPasswordError(passwordErrorString);
       dataValid = false;
     }
-    if (repeatPasswordRef.current.value !== donorData.password) {
-      setRepeatPasswordError("Repeated password doesn't match");
+    if (repeatPasswordRef.current.value !== formData.password) {
+      setRepeatPasswordError(repeatPasswordErrorString);
       dataValid = false;
     }
-    if (donorData.name === "") {
-      setNameError("Name cannot be empty");
+    if (formData.name === "") {
+      setNameError(nameErrorString);
       dataValid = false;
     }
-    if (donorData.surname === "") {
-      setSurnameError("Surname cannot be empty");
+    if (formData.surname === "") {
+      setSurnameError(surnameErrorString);
       dataValid = false;
     }
-    if (dataValid) {
+    if (formData.email === "") {
+      setEmailError(emailErrorString);
+      dataValid = false;
+    }
+    if (formData.phone === "") {
+      setPhoneError(phoneErrorString);
+      dataValid = false;
+    }
+
+    return dataValid;
+  }
+
+  function signUpHandler() {
+    const formData = {
+      username: usernameRef.current.value,
+      password: passwordRef.current.value,
+      name: nameRef.current.value,
+      surname: surnameRef.current.value,
+      email: emailRef.current.value,
+      phone: phoneRef.current.value,
+    };
+
+    if (isFormValid(formData)) {
       fetch(createUrl, {
         method: "POST",
-        body: JSON.stringify(donorData),
+        body: JSON.stringify(formData),
         headers: {
           "Content-Type": "application/json",
         },
@@ -80,7 +110,7 @@ function RegisterDonor() {
             });
           },
           (error) => {
-            setUsernameError("Username already exists");
+            setUsernameError(usernameExistsErrorString);
             console.log(error);
           }
         );
@@ -137,6 +167,24 @@ function RegisterDonor() {
           inputRef={surnameRef}
           helperText={surnameError}
           error={surnameError !== " "}
+        />
+        <TextField
+          label="Email"
+          type="email"
+          margin="dense"
+          required
+          inputRef={emailRef}
+          helperText={emailError}
+          error={emailError !== " "}
+        />
+        <TextField
+          label="Phone Number"
+          type="tel"
+          margin="dense"
+          required
+          inputRef={phoneRef}
+          helperText={phoneError}
+          error={phoneError !== " "}
         />
         <Button variant="contained" size="small" onClick={signUpHandler}>
           Sign Up
