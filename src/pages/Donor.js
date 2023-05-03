@@ -43,6 +43,8 @@ function Donor() {
   const repeatPasswordRef = useRef(null);
   const nameRef = useRef(null);
   const surnameRef = useRef(null);
+  const emailRef = useRef(null);
+  const phoneRef = useRef(null);
   const locationUuidRef = useRef(null);
   const appointmentUuidRef = useRef(null);
 
@@ -113,6 +115,8 @@ function Donor() {
         usernameRef.current.value = data.username;
         nameRef.current.value = data.name;
         surnameRef.current.value = data.surname;
+        emailRef.current.value = data.email;
+        phoneRef.current.value = data.phone;
       });
   }
 
@@ -225,6 +229,8 @@ function Donor() {
       password: passwordRef.current.value,
       name: nameRef.current.value,
       surname: surnameRef.current.value,
+      email: emailRef.current.value,
+      phone: phoneRef.current.value,
     };
     const password = formData.password;
     const repeatedPassword = repeatPasswordRef.current.value;
@@ -353,6 +359,7 @@ function Donor() {
             type="text"
             margin="dense"
             disabled
+            size="small"
             inputRef={usernameRef}
             helperText={" "}
             InputLabelProps={{ shrink: true }}
@@ -362,6 +369,7 @@ function Donor() {
             id="password"
             type="password"
             margin="dense"
+            size="small"
             inputRef={passwordRef}
             helperText={" "}
             InputLabelProps={{ shrink: true }}
@@ -371,6 +379,7 @@ function Donor() {
             id="repeatPassword"
             type="password"
             margin="dense"
+            size="small"
             inputRef={repeatPasswordRef}
             helperText={repeatPasswordError}
             error={repeatPasswordError !== " "}
@@ -381,6 +390,7 @@ function Donor() {
             id="name"
             type="text"
             margin="dense"
+            size="small"
             inputRef={nameRef}
             helperText={" "}
             InputLabelProps={{ shrink: true }}
@@ -390,8 +400,27 @@ function Donor() {
             id="surname"
             type="text"
             margin="dense"
+            size="small"
             inputRef={surnameRef}
             helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Email"
+            type="email"
+            margin="dense"
+            size="small"
+            inputRef={emailRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Phone Number"
+            type="tel"
+            margin="dense"
+            size="small"
+            inputRef={phoneRef}
+            helperText={""}
             InputLabelProps={{ shrink: true }}
           />
           <div className={classes.buttonsDiv}>
@@ -419,6 +448,7 @@ function Donor() {
             id="appointmentUuid"
             type="text"
             margin="dense"
+            size="small"
             inputRef={appointmentUuidRef}
             helperText={" "}
             InputLabelProps={{ shrink: true }}
@@ -428,6 +458,7 @@ function Donor() {
             id="locationUuid"
             type="text"
             margin="dense"
+            size="small"
             inputRef={locationUuidRef}
             helperText={" "}
             InputLabelProps={{ shrink: true }}
