@@ -25,6 +25,11 @@
   flex-flow: column nowrap;
 }
 
+.checkboxDiv {
+  display: flex;
+  justify-content: space-around;
+}
+
 .buttonsDiv {
   display: flex;
   justify-content: space-around;

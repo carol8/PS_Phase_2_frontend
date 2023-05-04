@@ -1,12 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   Divider,
+  FormControlLabel,
+  FormGroup,
   TextField,
   Typography,
 } from "@mui/material";
@@ -37,6 +40,9 @@ function Donor() {
     useState(false);
   const [updateDialog, setUpdateDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState();
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] =
+    useState(false);
+  const [smsNotificationsEnabled, setSmsNotificationsEnabled] = useState(false);
 
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
@@ -58,6 +64,20 @@ function Donor() {
   const columnsAppointments = [
     { field: "id", headerName: "ID", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
+    {
+      field: "emailNotificationsEnabled",
+      headerName: "Email notifications",
+      flex: 1,
+      valueGetter: (params) =>
+        params.row.emailNotificationsEnabled ? "Enabled" : "Disabled",
+    },
+    {
+      field: "smsNotificationsEnabled",
+      headerName: "SMS notifications",
+      flex: 1,
+      valueGetter: (params) =>
+        params.row.smsNotificationsEnabled ? "Enabled" : "Disabled",
+    },
     {
       field: "locationName",
       headerName: "Location Name",
@@ -212,15 +232,17 @@ function Donor() {
     setIsLocationUuidSelected(true);
   }
 
-  function updateAppointmentField(uuid) {
-    appointmentUuidRef.current.value = uuid;
+  function updateAppointmentFields(data) {
+    appointmentUuidRef.current.value = data.uuid;
+    setEmailNotificationsEnabled(data.emailNotificationsEnabled);
+    setSmsNotificationsEnabled(data.smsNotificationsEnabled);
     setIsAppointmentUuidSelected(true);
   }
 
   function appointmentRowHandler(params) {
     console.log(params);
 
-    updateAppointmentField(params.row.uuid);
+    updateAppointmentFields(params.row);
   }
 
   function updateHandler() {
@@ -274,6 +296,8 @@ function Donor() {
       date: dayjs(selectedDate).format("YYYY-MM-DD"),
       location: locationUuidRef.current.value,
       donor: data.username,
+      emailNotificationsEnabled: emailNotificationsEnabled,
+      smsNotificationsEnabled: smsNotificationsEnabled,
     };
 
     console.log(appointmentData);
@@ -294,11 +318,13 @@ function Donor() {
       .then(
         (data) => {
           console.log(data);
+          console.log("Fetching");
           fetchData();
           calendarUpdater(locationUuidRef.current.value);
-          updateAppointmentField(data.uuid);
+          updateAppointmentFields(data);
         },
         (error) => {
+          console.log("Error");
           console.log(error);
         }
       );
@@ -318,12 +344,25 @@ function Donor() {
         (data) => {
           console.log(data);
           fetchData();
-          updateAppointmentField(null);
+          const dummyData = {
+            uuid: null,
+            emailNotificationsEnabled: false,
+            smsNotificationsEnabled: false,
+          };
+          updateAppointmentFields(dummyData);
         },
         (error) => {
           console.log(error);
         }
       );
+  }
+
+  function handleEmailCheckedChanged(event) {
+    setEmailNotificationsEnabled(event.target.checked);
+  }
+
+  function handleSmsCheckedChanged(event) {
+    setSmsNotificationsEnabled(event.target.checked);
   }
 
   return (
@@ -473,6 +512,29 @@ function Donor() {
             shouldDisableDate={isForbiddenDate}
             disabled={!isLocationUuidSelected}
           />
+
+          <div className={classes.checkboxDiv}>
+            <FormGroup>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={emailNotificationsEnabled}
+                    onChange={handleEmailCheckedChanged}
+                  />
+                }
+                label="Send notifications via email"
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={smsNotificationsEnabled}
+                    onChange={handleSmsCheckedChanged}
+                  />
+                }
+                label="Send notifications via sms"
+              />
+            </FormGroup>
+          </div>
 
           <div className={classes.buttonsDiv}>
             <Button
