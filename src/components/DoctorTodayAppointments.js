@@ -45,7 +45,7 @@ function DoctorTodayAppointments(props) {
       fetch(
         `${appointmentURL}/locations/${
           props.locationUuid
-        }?date=${dayjs().format("YYYY-MM-DD")}&pageNumber=0&pageSize=1000000`
+        }?date=${dayjs().format("YYYY-MM-DD")}`
       )
         .then((response) => {
           console.log(response);
