@@ -1,8 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Divider, TextField } from "@mui/material";
+import {
+  Button,
+  Divider,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import classes from "./DoctorAllAppointments.module.css";
 import { useEffect, useRef, useState } from "react";
 import CustomTable from "./CustomTable";
+import { DatePicker } from "@mui/x-date-pickers";
+import dayjs from "dayjs";
 
 function DoctorAllAppointments(props) {
   const pageSize = 13;
@@ -10,8 +21,8 @@ function DoctorAllAppointments(props) {
   const [data, setData] = useState({
     appointmentList: [],
   });
-  const [isAppointmentUuidSelected, setIsAppointmentUuidSelected] =
-    useState(false);
+  const [bloodType, setBloodType] = useState("");
+  const [selectedDate, setSelectedDate] = useState();
   const [appointmentsPaginationModel, setAppointmentsPaginationModel] =
     useState({
       pageSize: pageSize,
@@ -19,10 +30,13 @@ function DoctorAllAppointments(props) {
     });
   const [rowCount, setRowCount] = useState(0);
   const [rowCountState, setRowCountState] = useState(rowCount);
+  const [donor, setDonor] = useState(null);
 
   const appointmentUuidRef = useRef(null);
+  const riskFactorsRef = useRef(null);
 
   const appointmentURL = "http://localhost:8080/appointments";
+  const donorExtendedDataURL = "http://localhost:8080/donors/extendedData";
 
   const columnsAppointments = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -84,15 +98,33 @@ function DoctorAllAppointments(props) {
     );
   }, [rowCount, setRowCountState]);
 
-  function updateAppointmentField(uuid) {
-    appointmentUuidRef.current.value = uuid;
-    setIsAppointmentUuidSelected(true);
-  }
-
   function appointmentRowHandler(params) {
     console.log(params);
 
-    updateAppointmentField(params.row.uuid);
+    appointmentUuidRef.current.value = params.row.uuid;
+
+    const donor = params.row.donor;
+    setDonor(donor);
+
+    fetch(`${donorExtendedDataURL}?cnp=${donor.cnp}`)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
+          setBloodType(data.bloodType);
+          setSelectedDate(dayjs(data.soonestDonationDate).add(3, "month"));
+          riskFactorsRef.current.value = data.riskFactors;
+        },
+        (error) => {
+          console.log("Error: ");
+          console.log(error);
+        }
+      );
   }
 
   function confirmAppointmentHandler() {
@@ -118,6 +150,35 @@ function DoctorAllAppointments(props) {
         (data) => {
           console.log(data);
           fetchData(appointmentsPaginationModel);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+
+    const extendedData = {
+      cnp: donor.cnp,
+      soonestDonationDate: dayjs(selectedDate).format("YYYY-MM-DD"),
+      bloodType: bloodType,
+      riskFactors: riskFactorsRef.current.value,
+    };
+
+    fetch(`${donorExtendedDataURL}`, {
+      method: "PUT",
+      body: JSON.stringify(extendedData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
         },
         (error) => {
           console.log(error);
@@ -155,19 +216,71 @@ function DoctorAllAppointments(props) {
       </div>
       <Divider orientation="vertical" />
       <div className={classes.sidebarDiv}>
-        <TextField
-          label="Appointment ID (Select from table)"
-          id="appointmentUuid"
-          type="text"
-          margin="dense"
-          inputRef={appointmentUuidRef}
-          helperText={" "}
-          InputLabelProps={{ shrink: true }}
-        />
+        <div>
+          <TextField
+            fullWidth
+            required
+            label="Appointment ID (Select from table)"
+            id="appointmentUuid"
+            type="text"
+            margin="dense"
+            inputRef={appointmentUuidRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <FormControl fullWidth>
+            <InputLabel id="bloodTypeLabel">Blood Type</InputLabel>
+            <Select
+              disabled
+              required
+              value={bloodType}
+              labelId="bloodTypeLabel"
+              id="bloodType"
+              // inputRef={}
+              label="Blood Type"
+              InputLabelProps={{ shrink: true }}
+            >
+              <MenuItem value="O+">O+</MenuItem>
+              <MenuItem value="O-">O-</MenuItem>
+              <MenuItem value="A+">A+</MenuItem>
+              <MenuItem value="A-">A-</MenuItem>
+              <MenuItem value="B+">B+</MenuItem>
+              <MenuItem value="B-">B-</MenuItem>
+              <MenuItem value="AB+">AB+</MenuItem>
+              <MenuItem value="AB-">AB-</MenuItem>
+            </Select>
+            <FormHelperText> </FormHelperText>
+          </FormControl>
+          <DatePicker
+            label="Soonest donation date"
+            slotProps={{
+              textField: {
+                helperText: " ",
+                fullWidth: true,
+              },
+            }}
+            value={selectedDate}
+            onChange={setSelectedDate}
+            disablePast
+            required
+          />
+          <TextField
+            label="Risk factors"
+            id="riskFactors"
+            type="text"
+            margin="dense"
+            fullWidth
+            multiline
+            minRows={5}
+            inputRef={riskFactorsRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+        </div>
         <Button
           variant="contained"
-          disabled={!isAppointmentUuidSelected}
           onClick={confirmAppointmentHandler}
+          disabled={selectedDate == null}
         >
           Confirm Appointment
         </Button>
