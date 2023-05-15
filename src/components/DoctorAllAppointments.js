@@ -66,7 +66,7 @@ function DoctorAllAppointments(props) {
     if (props.locationUuid !== undefined) {
       console.log(appointmentsPaginationModel);
       fetch(
-        `${appointmentURL}/all?locationUuid=${props.locationUuid}&pageNumber=${paginationModel.page}&pageSize=${paginationModel.pageSize}`
+        `${appointmentURL}/locations/${props.locationUuid}?date=&pageNumber=${paginationModel.page}&pageSize=${paginationModel.pageSize}`
       )
         .then((response) => {
           console.log(response);
