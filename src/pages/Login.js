@@ -39,15 +39,16 @@ function LandingPage() {
 
   const signInHandler = (e) => {
     const userData = {
-      username: usernameRef.current.value,
       password: passwordRef.current.value,
     };
+
+    const username = usernameRef.current.value;
 
     console.log(userData);
 
     if (isFormValid(userData)) {
       setLoginError(" ");
-      fetch(userURL, {
+      fetch(`${userURL}/${username}`, {
         method: "POST",
         body: JSON.stringify(userData),
         headers: {
@@ -67,21 +68,21 @@ function LandingPage() {
               case "ADMIN":
                 navigate("/admin", {
                   state: {
-                    username: userData.username,
+                    username: username,
                   },
                 });
                 break;
               case "DONOR":
                 navigate("/donor", {
                   state: {
-                    username: userData.username,
+                    username: username,
                   },
                 });
                 break;
               case "DOCTOR":
                 navigate("/doctor", {
                   state: {
-                    username: userData.username,
+                    username: username,
                   },
                 });
                 break;

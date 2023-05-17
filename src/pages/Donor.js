@@ -29,9 +29,9 @@ function Donor() {
 
   const [data, setData] = useState({
     name: "Loading...",
-    appointmentList: [],
-    locationList: [],
   });
+  const [appointmentList, setAppointmentList] = useState([]);
+  const [locationList, setlocationList] = useState([]);
 
   const [fullDates, setFullDates] = useState([]);
   const [repeatPasswordError, setRepeatPasswordError] = useState(" ");
@@ -112,7 +112,22 @@ function Donor() {
   ];
 
   function fetchData() {
-    fetch(`${donorURL}?username=${username}`)
+    fetch(`${donorURL}/${username}`)
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+
+        setData(data);
+        usernameRef.current.value = data.username;
+        nameRef.current.value = data.name;
+        surnameRef.current.value = data.surname;
+        emailRef.current.value = data.email;
+        phoneRef.current.value = data.phone;
+      });
+    fetch(`${appointmentURL}/donors/${username}`)
       .then((response) => {
         console.log(response);
         return response.json();
@@ -124,19 +139,24 @@ function Donor() {
             id: index + 1,
           })
         );
-        data.locationList = data.locationList.map((location, index) => ({
-          ...location,
-          id: index + 1,
-        }));
 
         console.log(data);
 
-        setData(data);
-        usernameRef.current.value = data.username;
-        nameRef.current.value = data.name;
-        surnameRef.current.value = data.surname;
-        emailRef.current.value = data.email;
-        phoneRef.current.value = data.phone;
+        setAppointmentList(data.appointmentList);
+      });
+    fetch(`${locationURL}`)
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        data.locationList = data.locationList.map((location, index) => ({
+          ...location,
+          id: index,
+        }));
+
+        console.log(data);
+        setlocationList(data.locationList);
       });
   }
 
@@ -185,42 +205,51 @@ function Donor() {
   }
 
   function calendarUpdater(uuid) {
-    fetch(`${locationURL}?uuid=${uuid}`)
+    fetch(`${appointmentURL}/locations/${uuid}`)
       .then((response) => {
         return response.json();
       })
-      .then((data) => {
-        console.log(data);
+      .then((appointmentData) => {
+        console.log(appointmentData);
+        fetch(`${locationURL}/${uuid}`)
+          .then((response) => {
+            return response.json();
+          })
+          .then((locationData) => {
+            console.log(locationData);
 
-        const appointmentDays = data.appointmentList.map(
-          (appointment) => appointment.date
-        );
-        console.log(appointmentDays);
+            const appointmentDays = appointmentData.appointmentList.map(
+              (appointment) => appointment.date
+            );
+            console.log(appointmentDays);
 
-        const appCountPerDay = appointmentDays.reduce((acc, curr) => {
-          if (curr in acc) {
-            acc[curr]++;
-          } else {
-            acc[curr] = 1;
-          }
-          return acc;
-        }, {});
-        console.log(appCountPerDay);
+            const appCountPerDay = appointmentDays.reduce((acc, curr) => {
+              if (curr in acc) {
+                acc[curr]++;
+              } else {
+                acc[curr] = 1;
+              }
+              return acc;
+            }, {});
+            console.log(appCountPerDay);
 
-        const resultingFullDates = [];
-        for (const key in appCountPerDay) {
-          if (appCountPerDay[key] >= data.maximumDailyDonations) {
-            resultingFullDates.push(key);
-          }
-        }
-        console.log(resultingFullDates);
+            const resultingFullDates = [];
+            for (const key in appCountPerDay) {
+              if (appCountPerDay[key] >= locationData.maximumDailyDonations) {
+                resultingFullDates.push(key);
+              }
+            }
+            console.log(resultingFullDates);
 
-        setFullDates(resultingFullDates);
-        if (selectedDate !== null) {
-          if (resultingFullDates.includes(selectedDate.format("YYYY-MM-DD"))) {
-            setSelectedDate(null);
-          }
-        }
+            setFullDates(resultingFullDates);
+            if (selectedDate !== null) {
+              if (
+                resultingFullDates.includes(selectedDate.format("YYYY-MM-DD"))
+              ) {
+                setSelectedDate(null);
+              }
+            }
+          });
       });
   }
 
@@ -247,18 +276,18 @@ function Donor() {
 
   function updateHandler() {
     const formData = {
-      username: usernameRef.current.value,
       password: passwordRef.current.value,
       name: nameRef.current.value,
       surname: surnameRef.current.value,
       email: emailRef.current.value,
       phone: phoneRef.current.value,
     };
+    const username = usernameRef.current.value;
     const password = formData.password;
     const repeatedPassword = repeatPasswordRef.current.value;
 
     if (isRepeatedPasswordValid(password, repeatedPassword)) {
-      fetch(donorURL, {
+      fetch(`${donorURL}/${username}`, {
         method: "PATCH",
         body: JSON.stringify(formData),
         headers: {
@@ -277,7 +306,7 @@ function Donor() {
 
   function deleteHandler() {
     const username = usernameRef.current.value;
-    fetch(`${donorURL}?username=${username}`, {
+    fetch(`${donorURL}/${username}`, {
       method: "DELETE",
     })
       .then((response) => {
@@ -331,7 +360,7 @@ function Donor() {
   }
 
   function deleteAppointmentHandler() {
-    fetch(`${appointmentURL}?uuid=${appointmentUuidRef.current.value}`, {
+    fetch(`${appointmentURL}/${appointmentUuidRef.current.value}`, {
       method: "DELETE",
     })
       .then((response) => {
@@ -375,7 +404,7 @@ function Donor() {
         <CustomTable
           title="Appointments"
           height="50%"
-          rows={data.appointmentList}
+          rows={appointmentList}
           columns={columnsAppointments}
           onRowClick={appointmentRowHandler}
           pageSizeOptions={[5]}
@@ -383,7 +412,7 @@ function Donor() {
         <CustomTable
           title="Locations"
           height="50%"
-          rows={data.locationList}
+          rows={locationList}
           columns={columnsLocations}
           onRowClick={locationRowHandler}
           pageSizeOptions={[5]}

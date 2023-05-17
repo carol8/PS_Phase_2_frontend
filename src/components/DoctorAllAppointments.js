@@ -129,11 +129,12 @@ function DoctorAllAppointments(props) {
 
   function confirmAppointmentHandler() {
     const appointmentData = {
-      uuid: appointmentUuidRef.current.value,
       isValid: true,
     };
 
-    fetch(`${appointmentURL}`, {
+    const uuid = appointmentUuidRef.current.value;
+
+    fetch(`${appointmentURL}/${uuid}`, {
       method: "PATCH",
       body: JSON.stringify(appointmentData),
       headers: {

@@ -10,10 +10,15 @@ function Administrator() {
   const { state } = useLocation();
   const { username } = state === null ? "" : state;
 
-  const [data, setData] = useState({
-    doctorList: [],
-    locationList: [],
+  // const [data, setData] = useState({
+  //   doctorList: [],
+  //   locationList: [],
+  // });
+  const [adminData, setAdminData] = useState({
+    name: "Loading...",
   });
+  const [doctorList, setDoctorList] = useState([]);
+  const [locationList, setlocationList] = useState([]);
   const [usernameError, setUsernameError] = useState(" ");
   const [passwordError, setPasswordError] = useState(" ");
   const [repeatPasswordError, setRepeatPasswordError] = useState(" ");
@@ -38,6 +43,7 @@ function Administrator() {
 
   const adminURL = "http://localhost:8080/admins";
   const doctorURL = "http://localhost:8080/doctors";
+  const locationURL = "http://localhost:8080/locations";
   const usernameEmptyErrorString = "Username cannot be empty";
   const usernameExistsErrorString = "Username already exists";
   const usernameNotExistErrorString = "Username does not exist";
@@ -83,7 +89,17 @@ function Administrator() {
   ];
 
   function fetchData() {
-    fetch(`${adminURL}?username=${username}`)
+    fetch(`${adminURL}/${username}`)
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setAdminData(data);
+      });
+
+    fetch(`${doctorURL}`)
       .then((response) => {
         console.log(response);
         return response.json();
@@ -93,14 +109,24 @@ function Administrator() {
           ...doctor,
           id: index,
         }));
+
+        console.log(data);
+        setDoctorList(data.doctorList);
+      });
+
+    fetch(`${locationURL}`)
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
         data.locationList = data.locationList.map((location, index) => ({
           ...location,
           id: index,
         }));
 
         console.log(data);
-
-        setData(data);
+        setlocationList(data.locationList);
       });
   }
 
@@ -225,7 +251,6 @@ function Administrator() {
 
   function updateHandler() {
     const formData = {
-      username: usernameRef.current.value,
       password: passwordRef.current.value,
       name: nameRef.current.value,
       surname: surnameRef.current.value,
@@ -233,8 +258,11 @@ function Administrator() {
       cnp: cnpRef.current.value,
       locationUuid: locationUuidRef.current.value,
     };
-    if (isUsernameValid(formData.username)) {
-      fetch(doctorURL, {
+
+    const username = usernameRef.current.value;
+
+    if (isUsernameValid(username)) {
+      fetch(`${doctorURL}/${username}`, {
         method: "PATCH",
         body: JSON.stringify(formData),
         headers: {
@@ -263,7 +291,7 @@ function Administrator() {
   function deleteHandler() {
     const username = usernameRef.current.value;
     if (isUsernameValid(username)) {
-      fetch(`${doctorURL}?username=${username}`, {
+      fetch(`${doctorURL}/${username}`, {
         method: "DELETE",
       })
         .then((response) => {
@@ -291,11 +319,11 @@ function Administrator() {
         <Typography
           variant="h3"
           marginBottom={1}
-        >{`Hi, ${data.name}`}</Typography>
+        >{`Hi, ${adminData.name}`}</Typography>
         <CustomTable
           title="Doctors"
           height="50%"
-          rows={data.doctorList}
+          rows={doctorList}
           columns={columnsDoctors}
           onRowClick={doctorRowHandler}
           pageSizeOptions={[5]}
@@ -303,7 +331,7 @@ function Administrator() {
         <CustomTable
           title="Locations"
           height="50%"
-          rows={data.locationList}
+          rows={locationList}
           columns={columnsLocations}
           onRowClick={locationRowHandler}
           pageSizeOptions={[5]}

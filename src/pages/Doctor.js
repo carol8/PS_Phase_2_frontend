@@ -19,13 +19,14 @@ function Doctor() {
   const [pageDisplayed, setPageDisplayed] = useState(pages.today);
   const [data, setData] = useState({
     name: "Loading...",
-    location: { uuid: undefined },
   });
+  const [location, setLocation] = useState({});
 
   const doctorURL = "http://localhost:8080/doctors";
+  const locationURL = "http://localhost:8080/locations";
 
   function fetchData() {
-    fetch(`${doctorURL}?username=${username}`)
+    fetch(`${doctorURL}/${username}`)
       .then((response) => {
         console.log(response);
         return response.json();
@@ -33,6 +34,15 @@ function Doctor() {
       .then((data) => {
         console.log(data);
         setData(data);
+      });
+    fetch(`${locationURL}/doctors/${username}`)
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data);
+        setLocation(data);
       });
   }
 
@@ -74,10 +84,10 @@ function Doctor() {
       </AppBar>
       <div className={classes.pageDiv}>
         {pageDisplayed === pages.today && (
-          <DoctorTodayAppointments locationUuid={data.location.uuid} />
+          <DoctorTodayAppointments locationUuid={location.uuid} />
         )}
         {pageDisplayed === pages.all && (
-          <DoctorAllAppointments locationUuid={data.location.uuid} />
+          <DoctorAllAppointments locationUuid={location.uuid} />
         )}
       </div>
     </div>
