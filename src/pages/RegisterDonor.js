@@ -1,8 +1,18 @@
-import { Button, TextField, Typography } from "@mui/material";
+import {
+  Button,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useRef, useState } from "react";
 
 import classes from "./RegisterDonor.module.css";
 import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 
 function RegisterDonor() {
   const navigate = useNavigate();
@@ -14,6 +24,8 @@ function RegisterDonor() {
   const [surnameError, setSurnameError] = useState(" ");
   const [emailError, setEmailError] = useState(" ");
   const [phoneError, setPhoneError] = useState(" ");
+  const [cnpError, setCnpError] = useState(" ");
+  const [bloodTypeError, setBloodTypeError] = useState(" ");
 
   const usernameRef = useRef();
   const passwordRef = useRef();
@@ -22,8 +34,11 @@ function RegisterDonor() {
   const surnameRef = useRef();
   const emailRef = useRef();
   const phoneRef = useRef();
+  const cnpRef = useRef();
+  const bloodTypeRef = useRef();
 
-  const createUrl = "http://localhost:8080/donors";
+  const donorURL = "http://localhost:8080/donors";
+  const extendedDataURL = "http://localhost:8080/donors/extended";
   const usernameEmptyErrorString = "Username cannot be empty";
   const usernameExistsErrorString = "Username already exists";
   const passwordErrorString = "Password cannot be empty";
@@ -32,8 +47,10 @@ function RegisterDonor() {
   const surnameErrorString = "Surname cannot be empty";
   const emailErrorString = "Email cannot be empty";
   const phoneErrorString = "Phone number cannot be empty";
+  const cnpErrorString = "CNP cannot be empty";
+  const bloodTypeErrorString = "Blood Type cannot be empty";
 
-  function isFormValid(formData) {
+  function isDonorDataValid(formData) {
     setUsernameError(" ");
     setPasswordError(" ");
     setRepeatPasswordError(" ");
@@ -41,6 +58,7 @@ function RegisterDonor() {
     setSurnameError(" ");
     setEmailError(" ");
     setPhoneError(" ");
+    setCnpError(" ");
 
     var dataValid = true;
 
@@ -72,24 +90,52 @@ function RegisterDonor() {
       setPhoneError(phoneErrorString);
       dataValid = false;
     }
+    if (formData.cnp === "") {
+      setCnpError(cnpErrorString);
+      dataValid = false;
+    }
+
+    return dataValid;
+  }
+
+  function isExtendedDataValid(extendedData) {
+    setBloodTypeError(undefined);
+
+    var dataValid = true;
+
+    if (extendedData.bloodType === undefined) {
+      setBloodTypeError(bloodTypeErrorString);
+      dataValid = false;
+    }
 
     return dataValid;
   }
 
   function signUpHandler() {
-    const formData = {
+    const donorData = {
       username: usernameRef.current.value,
       password: passwordRef.current.value,
       name: nameRef.current.value,
       surname: surnameRef.current.value,
       email: emailRef.current.value,
       phone: phoneRef.current.value,
+      cnp: cnpRef.current.value,
     };
 
-    if (isFormValid(formData)) {
-      fetch(createUrl, {
+    const extendedData = {
+      cnp: cnpRef.current.value,
+      soonestDonationDate: dayjs().format("YYYY-MM-DD"),
+      bloodType: bloodTypeRef.current.value,
+      riskFactors: "",
+    };
+
+    console.log(donorData);
+    console.log(extendedData);
+
+    if (isDonorDataValid(donorData) && isExtendedDataValid(extendedData)) {
+      fetch(donorURL, {
         method: "POST",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(donorData),
         headers: {
           "Content-Type": "application/json",
         },
@@ -103,11 +149,32 @@ function RegisterDonor() {
         .then(
           (data) => {
             console.log(data);
-            navigate("/login", {
-              state: {
-                isRegistrationSuccesful: true,
+            fetch(extendedDataURL, {
+              method: "POST",
+              body: JSON.stringify(extendedData),
+              headers: {
+                "Content-Type": "application/json",
               },
-            });
+            })
+              .then((response) => {
+                if (response.ok) {
+                  return response.json();
+                }
+                throw new Error(response);
+              })
+              .then(
+                (data) => {
+                  console.log(data);
+                  navigate("/login", {
+                    state: {
+                      isRegistrationSuccesful: true,
+                    },
+                  });
+                },
+                (error) => {
+                  console.log(error);
+                }
+              );
           },
           (error) => {
             setUsernameError(usernameExistsErrorString);
@@ -124,6 +191,7 @@ function RegisterDonor() {
           Register new Donor
         </Typography>
         <TextField
+          fullWidth
           label="Username"
           type="text"
           margin="dense"
@@ -133,6 +201,7 @@ function RegisterDonor() {
           error={usernameError !== " "}
         />
         <TextField
+          fullWidth
           label="Password"
           type="password"
           margin="dense"
@@ -142,6 +211,7 @@ function RegisterDonor() {
           error={passwordError !== " "}
         />
         <TextField
+          fullWidth
           label="Repeat Password"
           type="password"
           margin="dense"
@@ -151,6 +221,7 @@ function RegisterDonor() {
           error={repeatPasswordError !== " "}
         />
         <TextField
+          fullWidth
           label="Name"
           type="text"
           margin="dense"
@@ -160,6 +231,7 @@ function RegisterDonor() {
           error={nameError !== " "}
         />
         <TextField
+          fullWidth
           label="Surname"
           type="text"
           margin="dense"
@@ -169,6 +241,7 @@ function RegisterDonor() {
           error={surnameError !== " "}
         />
         <TextField
+          fullWidth
           label="Email"
           type="email"
           margin="dense"
@@ -178,6 +251,7 @@ function RegisterDonor() {
           error={emailError !== " "}
         />
         <TextField
+          fullWidth
           label="Phone Number"
           type="tel"
           margin="dense"
@@ -186,6 +260,37 @@ function RegisterDonor() {
           helperText={phoneError}
           error={phoneError !== " "}
         />
+        <TextField
+          fullWidth
+          label="Cod Numeric Personal (CNP)"
+          type="text"
+          margin="dense"
+          required
+          inputRef={cnpRef}
+          helperText={cnpError}
+          error={cnpError !== " "}
+        />
+        <FormControl fullWidth error={bloodTypeError !== undefined}>
+          <InputLabel id="bloodTypeLabel">Blood Type</InputLabel>
+          <Select
+            required
+            labelId="bloodTypeLabel"
+            id="bloodType"
+            inputRef={bloodTypeRef}
+            label="Blood Type"
+            InputLabelProps={{ shrink: true }}
+          >
+            <MenuItem value="O+">O+</MenuItem>
+            <MenuItem value="O-">O-</MenuItem>
+            <MenuItem value="A+">A+</MenuItem>
+            <MenuItem value="A-">A-</MenuItem>
+            <MenuItem value="B+">B+</MenuItem>
+            <MenuItem value="B-">B-</MenuItem>
+            <MenuItem value="AB+">AB+</MenuItem>
+            <MenuItem value="AB-">AB-</MenuItem>
+          </Select>
+          <FormHelperText>{bloodTypeError}</FormHelperText>
+        </FormControl>
         <Button variant="contained" size="small" onClick={signUpHandler}>
           Sign Up
         </Button>

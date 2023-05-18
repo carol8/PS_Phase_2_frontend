@@ -32,7 +32,7 @@ function Donor() {
   });
   const [appointmentList, setAppointmentList] = useState([]);
   const [locationList, setlocationList] = useState([]);
-
+  const [extendedDonorData, setExtendedDonorData] = useState({});
   const [fullDates, setFullDates] = useState([]);
   const [repeatPasswordError, setRepeatPasswordError] = useState(" ");
   const [isLocationUuidSelected, setIsLocationUuidSelected] = useState(false);
@@ -53,10 +53,16 @@ function Donor() {
   const phoneRef = useRef(null);
   const locationUuidRef = useRef(null);
   const appointmentUuidRef = useRef(null);
+  const cnpRef = useRef(null);
+  const soonestDateRef = useRef(null);
+  const bloodTypeRef = useRef(null);
+  const riskFactorsRef = useRef(null);
+  const appointmentResultRef = useRef(null);
 
   const donorURL = "http://localhost:8080/donors";
   const locationURL = "http://localhost:8080/locations";
   const appointmentURL = "http://localhost:8080/appointments";
+  const extendedDonorDataURL = "http://localhost:8080/donors/extended";
   const repeatPasswordErrorString = "Repeated password doesn't match";
 
   const maxDayAppointment = dayjs().add(14 - 1, "day"); //today is also considered
@@ -64,6 +70,13 @@ function Donor() {
   const columnsAppointments = [
     { field: "id", headerName: "ID", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
+    {
+      field: "isValid",
+      headerName: "Appointment Status",
+      flex: 1,
+      valueGetter: (params) =>
+        params.row.isValid ? "Confirmed" : "Not confirmed",
+    },
     {
       field: "emailNotificationsEnabled",
       headerName: "Email notifications",
@@ -121,11 +134,27 @@ function Donor() {
         console.log(data);
 
         setData(data);
+
         usernameRef.current.value = data.username;
         nameRef.current.value = data.name;
         surnameRef.current.value = data.surname;
         emailRef.current.value = data.email;
         phoneRef.current.value = data.phone;
+        cnpRef.current.value = data.cnp;
+
+        fetch(`${extendedDonorDataURL}/${data.cnp}`)
+          .then((response) => {
+            console.log(response);
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+
+            setExtendedDonorData(data);
+            soonestDateRef.current.value = data.soonestDonationDate;
+            bloodTypeRef.current.value = data.bloodType;
+            riskFactorsRef.current.value = data.riskFactors;
+          });
       });
     fetch(`${appointmentURL}/donors/${username}`)
       .then((response) => {
@@ -314,9 +343,20 @@ function Donor() {
       })
       .then((data) => {
         console.log(data);
-        fetchData();
-        updateDialogClose();
-        navigate("/login");
+
+        const cnp = cnpRef.current.value;
+        fetch(`${extendedDonorDataURL}/${cnp}`, {
+          method: "DELETE",
+        })
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            console.log(data);
+            fetchData();
+            updateDialogClose();
+            navigate("/login");
+          });
       });
   }
 
@@ -421,6 +461,7 @@ function Donor() {
       <Divider orientation="vertical" />
       <div className={classes.sidebarDiv}>
         <div className={classes.fieldsDiv}>
+          <Typography variant="h6">User data</Typography>
           <TextField
             label="Username"
             id="username"
@@ -518,7 +559,7 @@ function Donor() {
             margin="dense"
             size="small"
             inputRef={appointmentUuidRef}
-            helperText={" "}
+            helperText={""}
             InputLabelProps={{ shrink: true }}
           />
           <TextField
@@ -528,15 +569,16 @@ function Donor() {
             margin="dense"
             size="small"
             inputRef={locationUuidRef}
-            helperText={" "}
+            helperText={""}
             InputLabelProps={{ shrink: true }}
           />
           <DatePicker
             label="Appointment date"
             value={selectedDate}
-            helperText={"da"}
+            helperText={""}
             onChange={setSelectedDate}
             disablePast
+            minDate={dayjs(extendedDonorData.soonestDonationDate, "YYYY-MM-DD")}
             maxDate={maxDayAppointment}
             shouldDisableDate={isForbiddenDate}
             disabled={!isLocationUuidSelected}
@@ -585,6 +627,73 @@ function Donor() {
               Delete Appointment
             </Button>
           </div>
+        </div>
+      </div>
+      <Divider orientation="vertical" />
+      <div className={classes.sidebarDiv}>
+        <div className={classes.fieldsDiv}>
+          <Typography variant="h6">National DB data</Typography>
+          <TextField
+            label="Cod Numeric Personal (CNP)"
+            id="cnp"
+            type="text"
+            margin="dense"
+            disabled
+            size="small"
+            inputRef={cnpRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Soonest Donation Date"
+            id="soonestDate"
+            type="text"
+            margin="dense"
+            disabled
+            size="small"
+            inputRef={soonestDateRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            label="Blood Type"
+            id="bloodType"
+            type="text"
+            margin="dense"
+            disabled
+            size="small"
+            inputRef={bloodTypeRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            multiline
+            minRows={4}
+            maxRows={10}
+            label="Risk Factors"
+            id="riskFactors"
+            type="text"
+            margin="dense"
+            disabled
+            size="small"
+            inputRef={riskFactorsRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            multiline
+            minRows={4}
+            maxRows={10}
+            label="Appointment Result (Select from table)"
+            id="appointmentResult"
+            type="text"
+            margin="dense"
+            disabled
+            size="small"
+            inputRef={appointmentResultRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
         </div>
       </div>
       <Dialog open={updateDialog} onClose={updateDialogClose}>

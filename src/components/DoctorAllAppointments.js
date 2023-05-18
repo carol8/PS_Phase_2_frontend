@@ -21,7 +21,6 @@ function DoctorAllAppointments(props) {
   const [data, setData] = useState({
     appointmentList: [],
   });
-  const [bloodType, setBloodType] = useState("");
   const [selectedDate, setSelectedDate] = useState();
   const [appointmentsPaginationModel, setAppointmentsPaginationModel] =
     useState({
@@ -31,12 +30,18 @@ function DoctorAllAppointments(props) {
   const [rowCount, setRowCount] = useState(0);
   const [rowCountState, setRowCountState] = useState(rowCount);
   const [donor, setDonor] = useState(null);
+  const [enableConfirmAppointment, setEnableConfirmAppointment] =
+    useState(false);
+  const [enableAppointmentResult, setEnableAppointmentResult] = useState(false);
 
   const appointmentUuidRef = useRef(null);
+  const cnpRef = useRef(null);
+  const bloodTypeRef = useRef(null);
   const riskFactorsRef = useRef(null);
+  const appointmentResultRef = useRef(null);
 
   const appointmentURL = "http://localhost:8080/appointments";
-  const donorExtendedDataURL = "http://localhost:8080/donors/extendedData";
+  const extendedDonorDataURL = "http://localhost:8080/donors/extended";
 
   const columnsAppointments = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -106,7 +111,7 @@ function DoctorAllAppointments(props) {
     const donor = params.row.donor;
     setDonor(donor);
 
-    fetch(`${donorExtendedDataURL}?cnp=${donor.cnp}`)
+    fetch(`${extendedDonorDataURL}/${donor.cnp}`)
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -116,9 +121,13 @@ function DoctorAllAppointments(props) {
       .then(
         (data) => {
           console.log(data);
-          setBloodType(data.bloodType);
+          cnpRef.current.value = donor.cnp;
+          bloodTypeRef.current.value = data.bloodType;
           setSelectedDate(dayjs(data.soonestDonationDate).add(3, "month"));
           riskFactorsRef.current.value = data.riskFactors;
+
+          setEnableAppointmentResult(true);
+          setEnableConfirmAppointment(true);
         },
         (error) => {
           console.log("Error: ");
@@ -160,11 +169,11 @@ function DoctorAllAppointments(props) {
     const extendedData = {
       cnp: donor.cnp,
       soonestDonationDate: dayjs(selectedDate).format("YYYY-MM-DD"),
-      bloodType: bloodType,
+      bloodType: bloodTypeRef.current.value,
       riskFactors: riskFactorsRef.current.value,
     };
 
-    fetch(`${donorExtendedDataURL}`, {
+    fetch(`${extendedDonorDataURL}/${donor.cnp}`, {
       method: "PUT",
       body: JSON.stringify(extendedData),
       headers: {
@@ -186,6 +195,8 @@ function DoctorAllAppointments(props) {
         }
       );
   }
+
+  function updateAppointmentResultHandler() {}
 
   function pageChangedHandler(model) {
     setAppointmentsPaginationModel(model);
@@ -229,29 +240,28 @@ function DoctorAllAppointments(props) {
             helperText={" "}
             InputLabelProps={{ shrink: true }}
           />
-          <FormControl fullWidth>
-            <InputLabel id="bloodTypeLabel">Blood Type</InputLabel>
-            <Select
-              disabled
-              required
-              value={bloodType}
-              labelId="bloodTypeLabel"
-              id="bloodType"
-              // inputRef={}
-              label="Blood Type"
-              InputLabelProps={{ shrink: true }}
-            >
-              <MenuItem value="O+">O+</MenuItem>
-              <MenuItem value="O-">O-</MenuItem>
-              <MenuItem value="A+">A+</MenuItem>
-              <MenuItem value="A-">A-</MenuItem>
-              <MenuItem value="B+">B+</MenuItem>
-              <MenuItem value="B-">B-</MenuItem>
-              <MenuItem value="AB+">AB+</MenuItem>
-              <MenuItem value="AB-">AB-</MenuItem>
-            </Select>
-            <FormHelperText> </FormHelperText>
-          </FormControl>
+          <TextField
+            fullWidth
+            label="Cod Numeric Personal (CNP)"
+            id="cnp"
+            type="text"
+            margin="dense"
+            disabled
+            inputRef={cnpRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <TextField
+            fullWidth
+            label="Blood Type"
+            id="bloodType"
+            type="text"
+            margin="dense"
+            disabled
+            inputRef={bloodTypeRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
           <DatePicker
             label="Soonest donation date"
             slotProps={{
@@ -277,14 +287,37 @@ function DoctorAllAppointments(props) {
             helperText={" "}
             InputLabelProps={{ shrink: true }}
           />
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={confirmAppointmentHandler}
+            disabled={!enableConfirmAppointment}
+          >
+            Confirm Appointment
+          </Button>
         </div>
-        <Button
-          variant="contained"
-          onClick={confirmAppointmentHandler}
-          disabled={selectedDate == null}
-        >
-          Confirm Appointment
-        </Button>
+        <div>
+          <TextField
+            label="Appointment Result"
+            id="appointmentResult"
+            type="text"
+            margin="dense"
+            fullWidth
+            multiline
+            minRows={5}
+            inputRef={appointmentResultRef}
+            helperText={" "}
+            InputLabelProps={{ shrink: true }}
+          />
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={updateAppointmentResultHandler}
+            disabled={!enableAppointmentResult}
+          >
+            Update Appointment Result
+          </Button>
+        </div>
       </div>
     </div>
   );
