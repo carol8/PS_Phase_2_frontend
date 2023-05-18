@@ -406,9 +406,15 @@ function Donor() {
   }
 
   function deleteAppointmentHandler() {
-    fetch(`${appointmentURL}/${appointmentUuidRef.current.value}`, {
-      method: "DELETE",
-    })
+    const appointmentUuid = appointmentUuidRef.current.value;
+    fetch(
+      `${appointmentURL}/${appointmentUuid}?current_date=${dayjs().format(
+        "YYYY-MM-DD"
+      )}`,
+      {
+        method: "DELETE",
+      }
+    )
       .then((response) => {
         if (response.ok) {
           return response.json();
