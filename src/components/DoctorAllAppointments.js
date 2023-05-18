@@ -1,18 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {
-  Button,
-  Divider,
-  FormControl,
-  FormHelperText,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-} from "@mui/material";
+import { Divider } from "@mui/material";
 import classes from "./DoctorAllAppointments.module.css";
 import { useEffect, useRef, useState } from "react";
 import CustomTable from "./CustomTable";
-import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import DoctorSidebar from "./DoctorSidebar";
 

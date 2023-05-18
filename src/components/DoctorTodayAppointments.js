@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Button, Divider, TextField } from "@mui/material";
+import { Divider } from "@mui/material";
 import classes from "./DoctorTodayAppointments.module.css";
 import { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import CustomTable from "./CustomTable";
 import DoctorSidebar from "./DoctorSidebar";
-
-//TODO add fuctionality from AllAppointments (maybe trebuia componenta dar oh well)
 
 function DoctorTodayAppointments(props) {
   const [data, setData] = useState({

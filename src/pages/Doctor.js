@@ -2,7 +2,7 @@ import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
 
 import classes from "./Doctor.module.css";
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import DoctorTodayAppointments from "../components/DoctorTodayAppointments";
 import DoctorAllAppointments from "../components/DoctorAllAppointments";
 
@@ -11,7 +11,6 @@ function Doctor() {
     today: 0,
     all: 1,
   };
-  const navigate = useNavigate();
 
   const { state } = useLocation();
   const { username } = state === null ? "" : state;
