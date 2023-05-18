@@ -291,7 +291,13 @@ function Donor() {
   }
 
   function updateAppointmentFields(data) {
-    appointmentUuidRef.current.value = data.uuid;
+    const appointmentUuid = data.uuid;
+    appointmentUuidRef.current.value = appointmentUuid;
+
+    appointmentResultRef.current.value = appointmentList.find(
+      (appointment) => appointment.uuid === appointmentUuid
+    ).result;
+
     setEmailNotificationsEnabled(data.emailNotificationsEnabled);
     setSmsNotificationsEnabled(data.smsNotificationsEnabled);
     setIsAppointmentUuidSelected(true);

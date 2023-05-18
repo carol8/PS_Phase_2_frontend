@@ -99,7 +99,7 @@ function RegisterDonor() {
   }
 
   function isExtendedDataValid(extendedData) {
-    setBloodTypeError(undefined);
+    setBloodTypeError(" ");
 
     var dataValid = true;
 
@@ -132,7 +132,10 @@ function RegisterDonor() {
     console.log(donorData);
     console.log(extendedData);
 
-    if (isDonorDataValid(donorData) && isExtendedDataValid(extendedData)) {
+    const donorDataValid = isDonorDataValid(donorData);
+    const extendedDataValid = isExtendedDataValid(extendedData);
+
+    if (donorDataValid && extendedDataValid) {
       fetch(donorURL, {
         method: "POST",
         body: JSON.stringify(donorData),
@@ -270,7 +273,7 @@ function RegisterDonor() {
           helperText={cnpError}
           error={cnpError !== " "}
         />
-        <FormControl fullWidth error={bloodTypeError !== undefined}>
+        <FormControl fullWidth error={bloodTypeError !== " "}>
           <InputLabel id="bloodTypeLabel">Blood Type</InputLabel>
           <Select
             required

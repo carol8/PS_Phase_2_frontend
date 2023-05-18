@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import CustomTable from "./CustomTable";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs from "dayjs";
+import DoctorSidebar from "./DoctorSidebar";
 
 function DoctorAllAppointments(props) {
   const pageSize = 13;
@@ -106,7 +107,12 @@ function DoctorAllAppointments(props) {
   function appointmentRowHandler(params) {
     console.log(params);
 
-    appointmentUuidRef.current.value = params.row.uuid;
+    const appointmentUuid = params.row.uuid;
+    appointmentUuidRef.current.value = appointmentUuid;
+
+    appointmentResultRef.current.value = data.appointmentList.find(
+      (appointment) => appointment.uuid === appointmentUuid
+    ).result;
 
     const donor = params.row.donor;
     setDonor(donor);
@@ -127,7 +133,7 @@ function DoctorAllAppointments(props) {
           riskFactorsRef.current.value = data.riskFactors;
 
           setEnableAppointmentResult(true);
-          setEnableConfirmAppointment(true);
+          setEnableConfirmAppointment(!params.row.isValid);
         },
         (error) => {
           console.log("Error: ");
@@ -196,7 +202,35 @@ function DoctorAllAppointments(props) {
       );
   }
 
-  function updateAppointmentResultHandler() {}
+  function updateAppointmentResultHandler() {
+    const resultData = {
+      result: appointmentResultRef.current.value,
+    };
+
+    const appointmentUuid = appointmentUuidRef.current.value;
+
+    fetch(`${appointmentURL}/${appointmentUuid}`, {
+      method: "PATCH",
+      body: JSON.stringify(resultData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+  }
 
   function pageChangedHandler(model) {
     setAppointmentsPaginationModel(model);
@@ -227,98 +261,19 @@ function DoctorAllAppointments(props) {
         />
       </div>
       <Divider orientation="vertical" />
-      <div className={classes.sidebarDiv}>
-        <div>
-          <TextField
-            fullWidth
-            required
-            label="Appointment ID (Select from table)"
-            id="appointmentUuid"
-            type="text"
-            margin="dense"
-            inputRef={appointmentUuidRef}
-            helperText={" "}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            fullWidth
-            label="Cod Numeric Personal (CNP)"
-            id="cnp"
-            type="text"
-            margin="dense"
-            disabled
-            inputRef={cnpRef}
-            helperText={" "}
-            InputLabelProps={{ shrink: true }}
-          />
-          <TextField
-            fullWidth
-            label="Blood Type"
-            id="bloodType"
-            type="text"
-            margin="dense"
-            disabled
-            inputRef={bloodTypeRef}
-            helperText={" "}
-            InputLabelProps={{ shrink: true }}
-          />
-          <DatePicker
-            label="Soonest donation date"
-            slotProps={{
-              textField: {
-                helperText: " ",
-                fullWidth: true,
-              },
-            }}
-            value={selectedDate}
-            onChange={setSelectedDate}
-            disablePast
-            required
-          />
-          <TextField
-            label="Risk factors"
-            id="riskFactors"
-            type="text"
-            margin="dense"
-            fullWidth
-            multiline
-            minRows={5}
-            inputRef={riskFactorsRef}
-            helperText={" "}
-            InputLabelProps={{ shrink: true }}
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={confirmAppointmentHandler}
-            disabled={!enableConfirmAppointment}
-          >
-            Confirm Appointment
-          </Button>
-        </div>
-        <div>
-          <TextField
-            label="Appointment Result"
-            id="appointmentResult"
-            type="text"
-            margin="dense"
-            fullWidth
-            multiline
-            minRows={5}
-            inputRef={appointmentResultRef}
-            helperText={" "}
-            InputLabelProps={{ shrink: true }}
-          />
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={updateAppointmentResultHandler}
-            disabled={!enableAppointmentResult}
-          >
-            Update Appointment Result
-          </Button>
-        </div>
-      </div>
+      <DoctorSidebar
+        appointmentUuidRef={appointmentUuidRef}
+        cnpRef={cnpRef}
+        bloodTypeRef={bloodTypeRef}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        riskFactorsRef={riskFactorsRef}
+        confirmAppointmentHandler={confirmAppointmentHandler}
+        enableConfirmAppointment={enableConfirmAppointment}
+        appointmentResultRef={appointmentResultRef}
+        updateAppointmentResultHandler={updateAppointmentResultHandler}
+        enableAppointmentResult={enableAppointmentResult}
+      />
     </div>
   );
 }

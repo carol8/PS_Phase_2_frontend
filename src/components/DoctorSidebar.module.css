@@ -1,0 +1,7 @@
+.sidebarDiv {
+  display: flex;
+  flex: 1;
+  flex-flow: column nowrap;
+  justify-content: space-between;
+  padding: 1rem;
+}

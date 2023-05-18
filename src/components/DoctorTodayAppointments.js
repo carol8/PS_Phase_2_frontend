@@ -4,17 +4,28 @@ import classes from "./DoctorTodayAppointments.module.css";
 import { useEffect, useRef, useState } from "react";
 import dayjs from "dayjs";
 import CustomTable from "./CustomTable";
+import DoctorSidebar from "./DoctorSidebar";
+
+//TODO add fuctionality from AllAppointments (maybe trebuia componenta dar oh well)
 
 function DoctorTodayAppointments(props) {
   const [data, setData] = useState({
     appointmentList: [],
   });
-  const [isAppointmentUuidSelected, setIsAppointmentUuidSelected] =
+  const [selectedDate, setSelectedDate] = useState();
+  const [donor, setDonor] = useState(null);
+  const [enableConfirmAppointment, setEnableConfirmAppointment] =
     useState(false);
+  const [enableAppointmentResult, setEnableAppointmentResult] = useState(false);
 
   const appointmentUuidRef = useRef(null);
+  const cnpRef = useRef(null);
+  const bloodTypeRef = useRef(null);
+  const riskFactorsRef = useRef(null);
+  const appointmentResultRef = useRef(null);
 
   const appointmentURL = "http://localhost:8080/appointments";
+  const extendedDonorDataURL = "http://localhost:8080/donors/extended";
 
   const columnsAppointments = [
     { field: "id", headerName: "ID", flex: 1 },
@@ -70,24 +81,47 @@ function DoctorTodayAppointments(props) {
     fetchData();
   }, [props.locationUuid]);
 
-  function updateAppointmentField(uuid) {
-    appointmentUuidRef.current.value = uuid;
-    setIsAppointmentUuidSelected(true);
-  }
-
   function appointmentRowHandler(params) {
     console.log(params);
 
-    updateAppointmentField(params.row.uuid);
+    appointmentUuidRef.current.value = params.row.uuid;
+
+    const donor = params.row.donor;
+    setDonor(donor);
+
+    fetch(`${extendedDonorDataURL}/${donor.cnp}`)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
+          cnpRef.current.value = donor.cnp;
+          bloodTypeRef.current.value = data.bloodType;
+          setSelectedDate(dayjs(data.soonestDonationDate).add(3, "month"));
+          riskFactorsRef.current.value = data.riskFactors;
+
+          setEnableAppointmentResult(true);
+          setEnableConfirmAppointment(!params.row.isValid);
+        },
+        (error) => {
+          console.log("Error: ");
+          console.log(error);
+        }
+      );
   }
 
   function confirmAppointmentHandler() {
     const appointmentData = {
-      uuid: appointmentUuidRef.current.value,
       isValid: true,
     };
 
-    fetch(`${appointmentURL}`, {
+    const uuid = appointmentUuidRef.current.value;
+
+    fetch(`${appointmentURL}/${uuid}`, {
       method: "PATCH",
       body: JSON.stringify(appointmentData),
       headers: {
@@ -109,6 +143,65 @@ function DoctorTodayAppointments(props) {
           console.log(error);
         }
       );
+
+    const extendedData = {
+      cnp: donor.cnp,
+      soonestDonationDate: dayjs(selectedDate).format("YYYY-MM-DD"),
+      bloodType: bloodTypeRef.current.value,
+      riskFactors: riskFactorsRef.current.value,
+    };
+
+    fetch(`${extendedDonorDataURL}/${donor.cnp}`, {
+      method: "PUT",
+      body: JSON.stringify(extendedData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
+  }
+
+  function updateAppointmentResultHandler() {
+    const resultData = {
+      result: appointmentResultRef.current.value,
+    };
+
+    const appointmentUuid = appointmentUuidRef.current.value;
+
+    fetch(`${appointmentURL}/${appointmentUuid}`, {
+      method: "PATCH",
+      body: JSON.stringify(resultData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        }
+        throw new Error(response);
+      })
+      .then(
+        (data) => {
+          console.log(data);
+        },
+        (error) => {
+          console.log(error);
+        }
+      );
   }
 
   return (
@@ -119,29 +212,29 @@ function DoctorTodayAppointments(props) {
           height="100%"
           rows={data.appointmentList}
           columns={columnsAppointments}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: "date", sort: "asc" }],
+            },
+          }}
           onRowClick={appointmentRowHandler}
           pageSizeOptions={[13]}
         />
       </div>
       <Divider orientation="vertical" />
-      <div className={classes.sidebarDiv}>
-        <TextField
-          label="Appointment ID (Select from table)"
-          id="appointmentUuid"
-          type="text"
-          margin="dense"
-          inputRef={appointmentUuidRef}
-          helperText={" "}
-          InputLabelProps={{ shrink: true }}
-        />
-        <Button
-          variant="contained"
-          disabled={!isAppointmentUuidSelected}
-          onClick={confirmAppointmentHandler}
-        >
-          Confirm Appointment
-        </Button>
-      </div>
+      <DoctorSidebar
+        appointmentUuidRef={appointmentUuidRef}
+        cnpRef={cnpRef}
+        bloodTypeRef={bloodTypeRef}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        riskFactorsRef={riskFactorsRef}
+        confirmAppointmentHandler={confirmAppointmentHandler}
+        enableConfirmAppointment={enableConfirmAppointment}
+        appointmentResultRef={appointmentResultRef}
+        updateAppointmentResultHandler={updateAppointmentResultHandler}
+        enableAppointmentResult={enableAppointmentResult}
+      />
     </div>
   );
 }
